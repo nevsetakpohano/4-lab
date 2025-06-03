@@ -27,10 +27,15 @@ def main():
             pdf_to_txt(input_path, output_path)
         elif input_ext == ".txt" and output_ext == ".pdf":
             txt_to_pdf(input_path, output_path)
+        elif input_ext == ".csv" and output_ext == ".pdf":
+            csv_to_pdf(input_path, output_path)
+        elif input_ext == ".pdf" and output_ext == ".csv":
+            pdf_to_csv(input_path, output_path)
         else:
             print("Error: Unsupported conversion format")
     except Exception as e:
         print(f"Conversion error: {str(e)}")
+
 
 if __name__ == "__main__":
     main()
