@@ -73,6 +73,51 @@ def test_txt_to_pdf():
     os.unlink(txt_file.name)
     os.unlink(pdf_path)
 
+
+def test_csv_to_pdf():
+    with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as csv_file:
+        csv_path = csv_file.name
+        pd.DataFrame({"Name": ["Test"], "Value": [123]}).to_csv(csv_path, index=False)
+
+    pdf_path = csv_path.replace('.csv', '.pdf')
+    csv_to_pdf(csv_path, pdf_path)
+
+    assert os.path.exists(pdf_path)
+    assert os.path.getsize(pdf_path) > 100
+
+    reader = PdfReader(pdf_path)
+    assert len(reader.pages) > 0
+    content = reader.pages[0].extract_text()
+    assert "Name" in content
+    assert "Test" in content
+    assert "123" in content
+
+    os.unlink(csv_path)
+    os.unlink(pdf_path)
+
+
+def test_pdf_to_csv():
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_file:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.platypus import SimpleDocTemplate, Table
+
+        doc = SimpleDocTemplate(pdf_file.name, pagesize=letter)
+        data = [["Name", "Value"], ["Test", "123"]]
+        table = Table(data)
+        doc.build([table])
+
+    csv_path = pdf_file.name.replace('.pdf', '.csv')
+    pdf_to_csv(pdf_file.name, csv_path)
+
+    assert os.path.exists(csv_path)
+    df = pd.read_csv(csv_path)
+    assert "Name" in df.columns
+    assert "Test" in df["Name"].values
+    assert 123 in df["Value"].values
+
+    os.unlink(pdf_file.name)
+    os.unlink(csv_path)
+
 if __name__ == "__main__":
     import pytest
     pytest.main([__file__])
