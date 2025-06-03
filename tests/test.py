@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.converter import csv_to_txt
+from src.converter import csv_to_txt, txt_to_csv
 import pandas as pd
 import tempfile
 
@@ -24,6 +24,25 @@ def test_csv_to_txt():
     
     os.unlink(csv_path)
     os.unlink(txt_path)
+
+def test_txt_to_csv():
+    with tempfile.NamedTemporaryFile(suffix='.txt', delete=False) as txt_file:
+        txt_path = txt_file.name
+        with open(txt_path, 'w') as f:
+            f.write("Name\tValue\nTest\t123")
+    
+    csv_path = txt_path.replace('.txt', '.csv')
+    
+    txt_to_csv(txt_path, csv_path)
+    
+    assert os.path.exists(csv_path)
+    df = pd.read_csv(csv_path)
+    print("Converted DataFrame:", df)
+    assert "Test" in df["Name"].values
+    assert 123 in df["Value"].values
+    
+    os.unlink(txt_path)
+    os.unlink(csv_path)
 
 if __name__ == "__main__":
     import pytest
