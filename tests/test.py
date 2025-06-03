@@ -2,9 +2,10 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.converter import csv_to_txt, txt_to_csv
+from src.converter import csv_to_txt, txt_to_csv, pdf_to_txt, txt_to_pdf
 import pandas as pd
 import tempfile
+from PyPDF2 import PdfWriter
 
 def test_csv_to_txt():
 
@@ -43,6 +44,34 @@ def test_txt_to_csv():
     
     os.unlink(txt_path)
     os.unlink(csv_path)
+
+
+def test_pdf_to_txt():
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as pdf_file:
+        writer = PdfWriter()
+        writer.add_blank_page(width=72, height=72)
+        with open(pdf_file.name, 'wb') as f:
+            writer.write(f)
+    
+    txt_path = pdf_file.name.replace('.pdf', '.txt')
+    pdf_to_txt(pdf_file.name, txt_path)
+    
+    assert os.path.exists(txt_path)
+    os.unlink(pdf_file.name)
+    os.unlink(txt_path)
+
+def test_txt_to_pdf():
+    with tempfile.NamedTemporaryFile(suffix='.txt', delete=False) as txt_file:
+        with open(txt_file.name, 'w') as f:
+            f.write("Test content")
+    
+    pdf_path = txt_file.name.replace('.txt', '.pdf')
+    txt_to_pdf(txt_file.name, pdf_path)
+    
+    assert os.path.exists(pdf_path)
+    assert os.path.getsize(pdf_path) > 100
+    os.unlink(txt_file.name)
+    os.unlink(pdf_path)
 
 if __name__ == "__main__":
     import pytest
